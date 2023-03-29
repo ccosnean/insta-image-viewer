@@ -17,6 +17,7 @@ class InstaImageViewer extends StatelessWidget {
     this.backgroundIsTransparent = true,
     this.disposeLevel,
     this.disableSwipeToDismiss = false,
+    this.heroTag,
   }) : super(key: key);
 
   /// Image widget
@@ -37,30 +38,36 @@ class InstaImageViewer extends StatelessWidget {
   /// - it gives more predictable behaviour
   final bool disableSwipeToDismiss;
 
+  /// the custom hero tag
+  final Object? heroTag;
+
   @override
   Widget build(BuildContext context) {
-    final UniqueKey tag = UniqueKey();
+    final tag = heroTag ?? UniqueKey();
+
     return Hero(
       tag: tag,
       child: GestureDetector(
         onTap: () {
           Navigator.push(
-              context,
-              PageRouteBuilder(
-                  opaque: false,
-                  barrierColor: backgroundIsTransparent
-                      ? Colors.white.withOpacity(0)
-                      : backgroundColor,
-                  pageBuilder: (BuildContext context, _, __) {
-                    return FullScreenViewer(
-                      tag: tag,
-                      child: child,
-                      backgroundColor: backgroundColor,
-                      backgroundIsTransparent: backgroundIsTransparent,
-                      disposeLevel: disposeLevel,
-                      disableSwipeToDismiss: disableSwipeToDismiss,
-                    );
-                  }));
+            context,
+            PageRouteBuilder(
+              opaque: false,
+              barrierColor: backgroundIsTransparent
+                  ? Colors.white.withOpacity(0)
+                  : backgroundColor,
+              pageBuilder: (BuildContext context, _, __) {
+                return FullScreenViewer(
+                  tag: tag,
+                  child: child,
+                  backgroundColor: backgroundColor,
+                  backgroundIsTransparent: backgroundIsTransparent,
+                  disposeLevel: disposeLevel,
+                  disableSwipeToDismiss: disableSwipeToDismiss,
+                );
+              },
+            ),
+          );
         },
         child: child,
       ),
@@ -85,7 +92,7 @@ class FullScreenViewer extends StatefulWidget {
   final Color backgroundColor;
   final bool backgroundIsTransparent;
   final DisposeLevel? disposeLevel;
-  final UniqueKey tag;
+  final Object tag;
   final bool disableSwipeToDismiss;
 
   @override
@@ -200,26 +207,28 @@ class _FullScreenViewerState extends State<FullScreenViewer> {
                 child: InteractiveViewer(
                   boundaryMargin: const EdgeInsets.all(double.infinity),
                   panEnabled: false,
-                  child: widget.disableSwipeToDismiss
-                      ? ClipRRect(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(40),
-                          ),
-                          clipBehavior: Clip.hardEdge,
-                          child: widget.child,
-                        )
-                      : KeymotionGestureDetector(
-                          onStart: (details) => _dragStart(details),
-                          onUpdate: (details) => _dragUpdate(details),
-                          onEnd: (details) => _dragEnd(details),
-                          child: ClipRRect(
+                  child: SafeArea(
+                    child: widget.disableSwipeToDismiss
+                        ? ClipRRect(
                             borderRadius: const BorderRadius.all(
-                              Radius.circular(40),
+                              Radius.circular(20),
                             ),
                             clipBehavior: Clip.hardEdge,
                             child: widget.child,
+                          )
+                        : KeymotionGestureDetector(
+                            onStart: (details) => _dragStart(details),
+                            onUpdate: (details) => _dragUpdate(details),
+                            onEnd: (details) => _dragEnd(details),
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(20),
+                              ),
+                              clipBehavior: Clip.hardEdge,
+                              child: widget.child,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
               Align(
@@ -233,13 +242,13 @@ class _FullScreenViewerState extends State<FullScreenViewer> {
                       height: 40,
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(
-                          Radius.circular(40),
+                          Radius.circular(20),
                         ),
                         color: Color(0xff222222),
                       ),
                       child: const Center(
                         child: Icon(
-                          CupertinoIcons.clear,
+                          Icons.clear,
                           color: Colors.grey,
                         ),
                       ),
