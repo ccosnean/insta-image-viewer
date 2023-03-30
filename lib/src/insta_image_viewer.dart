@@ -18,6 +18,7 @@ class InstaImageViewer extends StatelessWidget {
     this.disposeLevel,
     this.disableSwipeToDismiss = false,
     this.heroTag,
+    this.triggerOnDoubleTap = false,
   }) : super(key: key);
 
   /// Image widget
@@ -41,6 +42,9 @@ class InstaImageViewer extends StatelessWidget {
   /// the custom hero tag
   final Object? heroTag;
 
+  /// A bool to set of the preview by double tap, rather then single tap.
+  final bool triggerOnDoubleTap;
+
   @override
   Widget build(BuildContext context) {
     final tag = heroTag ?? UniqueKey();
@@ -48,30 +52,35 @@ class InstaImageViewer extends StatelessWidget {
     return Hero(
       tag: tag,
       child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              opaque: false,
-              barrierColor: backgroundIsTransparent
-                  ? Colors.white.withOpacity(0)
-                  : backgroundColor,
-              pageBuilder: (BuildContext context, _, __) {
-                return FullScreenViewer(
-                  tag: tag,
-                  child: child,
-                  backgroundColor: backgroundColor,
-                  backgroundIsTransparent: backgroundIsTransparent,
-                  disposeLevel: disposeLevel,
-                  disableSwipeToDismiss: disableSwipeToDismiss,
-                );
-              },
-            ),
-          );
-        },
+        onTap: triggerOnDoubleTap ? null : _trigger(context, tag),
+        onDoubleTap: triggerOnDoubleTap ? _trigger(context, tag) : null,
         child: child,
       ),
     );
+  }
+
+  VoidCallback _trigger(BuildContext context, Object tag) {
+    return () {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          opaque: false,
+          barrierColor: backgroundIsTransparent
+              ? Colors.white.withOpacity(0)
+              : backgroundColor,
+          pageBuilder: (BuildContext context, _, __) {
+            return FullScreenViewer(
+              tag: tag,
+              child: child,
+              backgroundColor: backgroundColor,
+              backgroundIsTransparent: backgroundIsTransparent,
+              disposeLevel: disposeLevel,
+              disableSwipeToDismiss: disableSwipeToDismiss,
+            );
+          },
+        ),
+      );
+    };
   }
 }
 
@@ -205,8 +214,10 @@ class _FullScreenViewerState extends State<FullScreenViewer> {
                 left: horizontalPosition,
                 right: horizontalPosition,
                 child: InteractiveViewer(
-                  boundaryMargin: const EdgeInsets.all(double.infinity),
-                  panEnabled: false,
+                  boundaryMargin: widget.disableSwipeToDismiss
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.all(double.infinity),
+                  panEnabled: widget.disableSwipeToDismiss,
                   child: SafeArea(
                     child: widget.disableSwipeToDismiss
                         ? ClipRRect(
